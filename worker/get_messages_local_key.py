@@ -88,16 +88,16 @@ def salvar_no_mysql(df):
     except Exception as e:
         print(f"[❌] Erro ao salvar no banco: {e}")
 
-if __name__ == "__main__":
-    while True:
-        print(f"[{datetime.now()}] 🔄 Iniciando ciclo de ingestão...")
-        try:
-            dados = baixar_dados_sqs()
-            if not dados.empty:
-                salvar_no_mysql(dados)
-            else:
-                print(f"[ℹ️] Nenhum dado novo encontrado.")
-        except Exception as e:
-            print(f"[❌] Erro geral: {e}")
-        print("[⏱️] Aguardando 5 minutos...")
-        time.sleep(300)
+#if __name__ == "__main__":
+#    while True:
+#        print(f"[{datetime.now()}] 🔄 Iniciando ciclo de ingestão...")
+#        try:
+#            dados = baixar_dados_sqs()
+#            if not dados.empty:
+#                salvar_no_mysql(dados)
+#            else:
+#                print(f"[ℹ️] Nenhum dado novo encontrado.")
+#        except Exception as e:
+#            print(f"[❌] Erro geral: {e}")
+#        print("[⏱️] Aguardando 5 minutos...")
+#        time.sleep(300)
