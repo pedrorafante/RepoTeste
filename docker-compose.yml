@@ -1,0 +1,66 @@
+services:
+  emqx:
+    image: emqx/emqx:latest
+    container_name: emqx
+    ports:
+      - "1883:1883"     # MQTT
+      - "18083:18083"   # Painel Web
+    restart: unless-stopped
+    networks:
+      - mqttnet
+
+  mysql:
+    image: mysql:8
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: locomotive_MBC
+      MYSQL_USER: mqtt_user
+      MYSQL_PASSWORD: mqttpass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init-db:/docker-entrypoint-initdb.d
+    restart: unless-stopped
+    networks:
+      - mqttnet
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    restart: unless-stopped
+    networks:
+      - mqttnet
+
+  worker:
+    build:
+      context: ./worker
+    container_name: data_worker
+    depends_on:
+      - mysql
+    environment:
+      - MYSQL_HOST=mysql
+      - MYSQL_USER=mqtt_user
+      - MYSQL_PASSWORD=mqttpass
+      - MYSQL_DB=locomotiva_MBC
+      - AWS_ACCESS_KEY=
+      - AWS_SECRET_KEY= 
+      - SQS_QUEUE=vli-mezuri-out
+    volumes:
+      - ./data:/data
+    restart: unless-stopped
+    networks:
+      - mqttnet
+
+volumes:
+  mysql_data:
+  grafana_data:
+
+networks:
+  mqttnet:
+    driver: bridge
