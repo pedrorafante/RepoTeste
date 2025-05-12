@@ -6,8 +6,8 @@ import numpy as np
 # Configurações de conexão com o MySQL
 host = 'localhost'
 database = 'locomotive_MBC'
-user = 'root'
-password = 'root'
+user = 'mqtt_user'
+password = 'mqttpass'
 
 # Ler o arquivo Excel
 file_path = 'Roteadores_Locomotivas_VLI.xlsx'
@@ -31,15 +31,13 @@ df = df[colunas_desejadas]
 # Tratamento de valores nulos para None
 df = df.replace({np.nan: None})
 
-# Conversão das datas para o formato correto (caso estejam como string)
-df['DATA ATIVAÇÃO'] = pd.to_datetime(df['DATA ATIVAÇÃO'], errors='coerce')
-df['DATA INSTALAÇÃO'] = pd.to_datetime(df['DATA INSTALAÇÃO'], errors='coerce')
+# Conversão das datas para string no formato aceito pelo MySQL
+df['DATA ATIVAÇÃO'] = pd.to_datetime(df['DATA ATIVAÇÃO'], errors='coerce').dt.strftime('%Y-%m-%d %H:%M:%S')
+df['DATA INSTALAÇÃO'] = pd.to_datetime(df['DATA INSTALAÇÃO'], errors='coerce').dt.strftime('%Y-%m-%d %H:%M:%S')
 
-# Converter colunas numéricas para string sem ".0"
-colunas_para_ajustar = ['Locomotiva', 'SERIAL', 'IMEI', 'LAN MAC', 'CHIP']
-
-for coluna in colunas_para_ajustar:
-    df[coluna] = df[coluna].apply(lambda x: str(int(x)) if pd.notnull(x) and isinstance(x, float) else x)
+# Substituir NaT por None para evitar erro de inserção
+df['DATA ATIVAÇÃO'] = df['DATA ATIVAÇÃO'].replace({pd.NaT: None})
+df['DATA INSTALAÇÃO'] = df['DATA INSTALAÇÃO'].replace({pd.NaT: None})
 
 # Função para inserir ou atualizar dados no MySQL
 def inserir_ou_atualizar_dados():
